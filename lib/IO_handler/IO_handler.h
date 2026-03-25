@@ -13,6 +13,7 @@ Tasks for students:
 #include "IIRfilter.h"
 #include "RC.h"
 #include "Motor.h"
+#include "Servo.h"
 
 class IO_handler
 {
@@ -22,6 +23,12 @@ public:
     void read_encoders_calc_speed(void);       // read both encoders and calculate speeds
     void enable_motors(bool);       // enable/disable motors via DigitalOut, send a "true" and also press button
     void set_motor_voltage(uint8_t,float);
+
+    void enable_servo(bool enable); // enable/disable servo output
+    void set_servo_speed(float speed_pm1); // speed in [-1,+1], -1=backward, +1=forward
+    void set_servo_position(float normalized); // position in [0,1], 0=0deg, 1=180deg
+    void process_servo_button(float ch7_pm1); // update toggle state using channel 7 button
+
     void read_rc();
     LinearCharacteristics val2pm1;
     float ch_pm1[10];
@@ -32,6 +39,12 @@ private:
     Motor motor_M1;
     Motor motor_M2;
     DigitalOut enable_motor_driver;
+    Servo servo_D0;
+
+    bool servo_toggle_state;
+    bool servo_button_last;
+    bool servo_button_initialized;
+
     void map_channels();
    // DigitalIn big_button;         // Enable button an backside
     ///------------- Encoder -----------------------

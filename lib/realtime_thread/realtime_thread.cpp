@@ -30,9 +30,15 @@ void realtime_thread::loop(void)
         ThisThread::flags_wait_any(m_ThreadFlag);
         time = 1e-6f * (float)(duration_cast<microseconds>(m_Timer.elapsed_time()).count());
         m_IO_handler->read_rc();
+
+        // control DC motors from channel 0 and 1 (as before)
         m_IO_handler->enable_motors(true);
-        m_IO_handler->set_motor_voltage(0,5* m_IO_handler->ch_pm1[0]);
-        m_IO_handler->set_motor_voltage(1,5* m_IO_handler->ch_pm1[1]);
+        m_IO_handler->set_motor_voltage(0, 5.0f * m_IO_handler->ch_pm1[0]);
+        m_IO_handler->set_motor_voltage(1, 5.0f * m_IO_handler->ch_pm1[1]);
+
+        // process button-based toggle on channel 7
+        m_IO_handler->enable_servo(true);
+        m_IO_handler->process_servo_button(m_IO_handler->ch_pm1[7]);
     }
 }
 
