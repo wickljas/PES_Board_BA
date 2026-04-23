@@ -16,16 +16,21 @@ IO_handler::IO_handler(float Ts):rc(PA_1), motor_M1(PB_PWM_M1,12),
 {
     val2pm1.setup(192,1712,-1.0f,1.0f);
 
-    // Use standard positional servo range
+    // Use standard positional servo range (swapped for reversed polarity)
     servo_D0.calibratePulseMinMax(0.0150f, 0.1150f);
-    servo_D0.setMaxVelocity(1.5f);    // Max speed: adjust this value (higher = faster)
-    servo_D0.setMaxAcceleration(3.0f);
-    servo_D0.enable(0.0f); // startup at 0°
+    servo_D0.setMaxVelocity(0.375f);    // Max speed: 1/4 of original (higher = faster)
+    servo_D0.setMaxAcceleration(0.75f);
+    servo_D0.enable(0.0f); // startup at max (reversed)
+
+    // disable motors on startup
+    enable_motors(false);
 
     // toggle engine for channel7 button behavior
     servo_toggle_state = false;
     servo_button_last = false;
     servo_button_initialized = false;
+    servo_current_position = 1.0f; // start at maximum position (reversed polarity)
+    m_Ts = Ts; // store sampling time
 }
 IO_handler::~IO_handler() {} 
 
@@ -113,6 +118,37 @@ void IO_handler::process_servo_button(float ch7_pm1)
     }
 
     servo_button_last = current;
+}
+
+void IO_handler::update_servo_position_joystick(float ch_joystick_pm1)
+{
+    // Constrain joystick input to [-1, 1]
+    if (ch_joystick_pm1 > 1.0f) ch_joystick_pm1 = 1.0f;
+    if (ch_joystick_pm1 < -1.0f) ch_joystick_pm1 = -1.0f;
+
+    // Deadband around center to avoid jitter when joystick is near neutral
+    const float deadband = 0.05f;
+    if (fabs(ch_joystick_pm1) < deadband) {
+        ch_joystick_pm1 = 0.0f;
+    }
+
+    // Increment/decrement servo position based on joystick input
+    // Positive joystick (up) -> increase position
+    // Negative joystick (down) -> decrease position
+    // The rate of change is proportional to the joystick deflection (integrate velocity)
+    const float position_rate = 0.375f; // normalized position change per second at full stick (1/4 speed)
+    servo_current_position += ch_joystick_pm1 * position_rate * m_Ts;
+
+    // Constrain position to [0, 1]
+    if (servo_current_position > 1.0f) servo_current_position = 1.0f;
+    if (servo_current_position < 0.0f) servo_current_position = 0.0f;
+
+    // Keep servo enabled and set to current position
+    if (!servo_D0.isEnabled()) {
+        servo_D0.enable(servo_current_position);
+    } else {
+        servo_D0.setPulseWidth(servo_current_position);
+    }
 }
 
 void IO_handler::map_channels()

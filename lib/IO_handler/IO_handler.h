@@ -28,6 +28,7 @@ public:
     void set_servo_speed(float speed_pm1); // speed in [-1,+1], -1=backward, +1=forward
     void set_servo_position(float normalized); // position in [0,1], 0=0deg, 1=180deg
     void process_servo_button(float ch7_pm1); // update toggle state using channel 7 button
+    void update_servo_position_joystick(float ch_joystick_pm1); // update servo position from joystick input, maintains position at rest
 
     void read_rc();
     LinearCharacteristics val2pm1;
@@ -44,6 +45,8 @@ private:
     bool servo_toggle_state;
     bool servo_button_last;
     bool servo_button_initialized;
+    float servo_current_position; // current servo position [0, 1]
+    float m_Ts; // sampling time
 
     void map_channels();
    // DigitalIn big_button;         // Enable button an backside
