@@ -49,6 +49,7 @@ public:
     bool isHigh(uint8_t idx) const;
     float getChannelMinusToPlusOne(uint8_t idx) const;
     float getChannelZeroToPlusOne(uint8_t idx) const;
+    uint16_t getRawChannel(uint8_t idx) const { return (idx < SBUS_NUM_OF_CHANNELS) ? _channels[idx] : 0; }
     bool isPkgValid() const { return _is_pkg_valid; }
     void setPkgValidFalse() { _is_pkg_valid = false; }
     void processReceivedData();

@@ -61,6 +61,12 @@ void SBus::processReceivedData()
     // read all available bytes
     int bytes_read = _SerialPipe.get(&buffer, sizeof(buffer), false);
 
+    if (bytes_read > 0) {
+        printf("Raw bytes (%d): ", bytes_read);
+        for(int i = 0; i < bytes_read; i++) printf("%02x ", buffer[i]);
+        printf("\n");
+    }
+
     // process all bytes
     for (uint8_t i = 0; i < bytes_read; i++) {
 
