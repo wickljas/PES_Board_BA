@@ -24,21 +24,17 @@ realtime_thread::~realtime_thread() {}
 // this is the main loop called every Ts with high priority
 void realtime_thread::loop(void)
 {
-    float time{0.0f};
-    
     while (true) {
         ThisThread::flags_wait_any(m_ThreadFlag);
-        time = 1e-6f * (float)(duration_cast<microseconds>(m_Timer.elapsed_time()).count());
         m_IO_handler->read_rc();
-
-        // control DC motors from channel 0 and 1 (as before)
+    // temporarily disable button-based servo switching
+    // m_IO_handler->process_servo_buttons(m_IO_handler->ch_pm1[4], m_IO_handler->ch_pm1[7]);
         //m_IO_handler->enable_motors(true);
         //m_IO_handler->set_motor_voltage(0, 5.0f * m_IO_handler->ch_pm1[0]);
         //m_IO_handler->set_motor_voltage(1, 5.0f * m_IO_handler->ch_pm1[1]);
 
-        // control servo from joystick on channel 1 (up/down -> increase/decrease position)
-        m_IO_handler->enable_servo(true);
-        m_IO_handler->update_servo_position_joystick(m_IO_handler->ch_pm1[1]);
+        // control DC motors with channel 0 as forward/backward and channel 1 as left/right steering
+        m_IO_handler->drive(m_IO_handler->ch_pm1[0], m_IO_handler->ch_pm1[1]);
     }
 }
 

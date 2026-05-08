@@ -23,12 +23,20 @@ public:
     void read_encoders_calc_speed(void);       // read both encoders and calculate speeds
     void enable_motors(bool);       // enable/disable motors via DigitalOut, send a "true" and also press button
     void set_motor_voltage(uint8_t,float);
+    void drive(float forward_pm1, float steer_pm1); // forward/back and left/right steering
 
     void enable_servo(bool enable); // enable/disable servo output
     void set_servo_speed(float speed_pm1); // speed in [-1,+1], -1=backward, +1=forward
-    void set_servo_position(float normalized); // position in [0,1], 0=0deg, 1=180deg
-    void process_servo_button(float ch7_pm1); // update toggle state using channel 7 button
+    void set_servo_position(float normalized); // position in [0,1], 0=0deg, 1=180deg for both servos
+    void set_servo_position(uint8_t servo_id, float normalized); // position for a single servo
+    void set_servo_positions(float normalized0, float normalized1); // set both servo positions
+    void process_servo_buttons(float ch4_pm1, float ch7_pm1); // update servo positions from channel 4 and 7 toggles
+    void process_servo_button(float ch7_pm1); // legacy single-button support
     void update_servo_position_joystick(float ch_joystick_pm1); // update servo position from joystick input, maintains position at rest
+
+    void set_servo_degrees(float degrees); // set both servos to position in degrees
+    float servo_start_degrees = 83.0f; // starting position in degrees
+    float servo_start_d1_degrees = 92.0f;
 
     void read_rc();
     LinearCharacteristics val2pm1;
@@ -41,11 +49,16 @@ private:
     Motor motor_M2;
     DigitalOut enable_motor_driver;
     Servo servo_D0;
+    Servo servo_D1;
 
-    bool servo_toggle_state;
-    bool servo_button_last;
-    bool servo_button_initialized;
-    float servo_current_position; // current servo position [0, 1]
+    bool servo_toggle_state4;
+    bool servo_toggle_state7;
+    bool servo_button_last4;
+    bool servo_button_last7;
+    bool servo_button_initialized4;
+    bool servo_button_initialized7;
+    float servo_current_position0; // current servo D0 position [0, 1]
+    float servo_current_position1; // current servo D1 position [0, 1]
     float m_Ts; // sampling time
 
     void map_channels();
